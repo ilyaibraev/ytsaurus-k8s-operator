@@ -9,32 +9,11 @@ permissions: {}
 jobs:
   telegram:
     name: Telegram
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send to notification chat
-        if: env.HAS_TELEGRAM_SECRETS == 'true'
-        env:
-          HAS_TELEGRAM_SECRETS: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_NOTIFICATIONS_CHAT_ID != '' }}
-        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3 # v1.0.1
-        with:
-          to: ${{ secrets.TELEGRAM_NOTIFICATIONS_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          disable_web_page_preview: true
-          format: markdown
-          message: |
-            New issue in *${{github.repository}}*: `${{github.event.issue.title}}`
-            ${{github.server_url}}/${{github.repository}}/issues/${{github.event.issue.number}}
-
-      - name: Send to k8s operator chat
-        if: env.HAS_TELEGRAM_SECRETS == 'true'
-        env:
-          HAS_TELEGRAM_SECRETS: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_K8S_OPERATOR_CHAT_ID != '' }}
-        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3 # v1.0.1
-        with:
-          to: ${{ secrets.TELEGRAM_K8S_OPERATOR_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          disable_web_page_preview: true
-          format: markdown
-          message: |
-            New issue in *${{github.repository}}*: `${{github.event.issue.title}}`
-            ${{github.server_url}}/${{github.repository}}/issues/${{github.event.issue.number}}
+    uses: ./.github/workflows/subflow_send_telegram_notification.yaml
+    with:
+      notification_type: issue
+    secrets:
+      TELEGRAM_CHAT_ID: |
+        ${{ secrets.TELEGRAM_NOTIFICATIONS_CHAT_ID }}
+        ${{ secrets.TELEGRAM_K8S_OPERATOR_CHAT_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

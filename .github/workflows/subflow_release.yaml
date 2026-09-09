@@ -75,23 +75,12 @@ jobs:
 
   send-notifications:
     name: Send notifications
-    runs-on: ubuntu-latest
+    needs: release
     if: ${{ failure() }}
-    steps:
-      - name: Send telegram message
-        if: env.HAS_TELEGRAM_SECRETS == 'true'
-        env:
-          HAS_TELEGRAM_SECRETS: ${{ secrets.TELEGRAM_CHAT_ID != '' && secrets.TELEGRAM_TOKEN != '' }}
-        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3 # v1.0.1
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          disable_web_page_preview: true
-          format: markdown
-          message: |
-            Workflow *${{github.workflow}}* failed: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}.
-            Commit: ${{github.event.head_commit.sha}}
-            Message:
-            ```
-            ${{github.event.head_commit.message}}
-            ```
+    permissions: {}
+    uses: ./.github/workflows/subflow_send_telegram_notification.yaml
+    with:
+      notification_type: workflow_failure
+    secrets:
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
